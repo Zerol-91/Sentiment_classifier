@@ -6,13 +6,13 @@ import os
 from typing import List
 import time
 
-# Импортируем нашу модель
+
 from model import BaselineModel
 
-# Функция для загрузки модели при запуске
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup - загружаем модель
+
     global model
     try:
         model = BaselineModel()
@@ -22,14 +22,14 @@ async def lifespan(app: FastAPI):
             raise FileNotFoundError(f"Модель не найдена: {model_path}")
             
         model.load(model_path)
-        print("✅ Модель успешно загружена!")
+        print("Модель успешно загружена!")
     except Exception as e:
-        print(f"❌ Ошибка загрузки модели: {e}")
+        print(f"Ошибка загрузки модели: {e}")
         model = None
     yield
-    # Shutdown - можно добавить очистку ресурсов
 
-# Создаем FastAPI приложение с lifespan
+
+
 app = FastAPI(
     title="Sentiment Classifier API",
     description="API для классификации тональности текста",
@@ -37,7 +37,7 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# Модели данных для запросов и ответов
+
 class TextRequest(BaseModel):
     text: str
 
@@ -77,11 +77,9 @@ async def predict_sentiment(request: TextRequest):
     start_time = time.time()
     
     try:
-        # Предсказание
         prediction = model.predict([request.text])[0]
         probabilities = model.predict_proba([request.text])[0]
         
-        # Определяем уверенность предсказания
         confidence = float(probabilities[0] if prediction == "negative" else probabilities[1])
         processing_time = time.time() - start_time
         
@@ -105,8 +103,3 @@ async def model_info():
         "classes": ["negative", "positive"],
         "f1_score": 0.875
     }
-
-# Запуск сервера для разработки
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run("api:app", host="0.0.0.0", port=8000, reload=True)
