@@ -14,4 +14,4 @@ RUN python -c "import nltk; nltk.download('punkt'); nltk.download('stopwords')"
 
 EXPOSE 8000
 
-CMD ["python", "run_both.py"]
+CMD ["python", "run_api.py"]
