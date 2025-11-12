@@ -37,7 +37,12 @@ def run_bot():
     try:
         # Ждем немного пока API поднимется
         time.sleep(3)
-        
+        import asyncio
+        # СОЗДАЕМ СПЕЦИАЛЬНО event loop для этого потока
+        loop = asyncio.new_event_loop()      # ← создаем
+        asyncio.set_event_loop(loop)         # ← устанавливаем
+
+
         from bot import SentimentBot
         logger.info("🤖 Запуск Telegram бота...")
         bot = SentimentBot()
