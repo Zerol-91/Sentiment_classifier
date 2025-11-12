@@ -103,3 +103,11 @@ async def model_info():
         "classes": ["negative", "positive"],
         "f1_score": 0.875
     }
+
+
+if __name__ == "__main__":
+    import uvicorn
+    print("🚀 Запуск Sentiment Classifier API...")
+    print("📡 Сервер доступен по адресу: http://localhost:8000")
+    print("📖 Документация API: http://localhost:8000/docs")
+    uvicorn.run(app, host="0.0.0.0", port=8000)

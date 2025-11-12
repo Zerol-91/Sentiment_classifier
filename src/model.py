@@ -45,11 +45,6 @@ class BaselineModel:
         print(f"💾 Модель сохранена в {path}")
     
     def load(self, path='models/baseline_model.pkl'):
-        self.pipeline = joblib.load(path)
-        print(f"📥 Модель загружена из {path}")
-
-        
-    def load(self, path='models/baseline_model.pkl'):
         """Загрузка модели из файла"""
         self.pipeline = joblib.load(path)
         print(f"📥 Модель загружена из {path}")
