@@ -5,30 +5,29 @@ import joblib
 import os
 from typing import List
 import time
+from dotenv import load_dotenv
 
+# Загружаем переменные окружения
+load_dotenv()
 
 from model import BaselineModel
 
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-
     global model
     try:
         model = BaselineModel()
-        model_path = "models/baseline_model.pkl"
+        model_path = os.getenv("MODEL_PATH", "models/baseline_model.pkl")
         
         if not os.path.exists(model_path):
             raise FileNotFoundError(f"Модель не найдена: {model_path}")
             
         model.load(model_path)
-        print("Модель успешно загружена!")
+        print("✅ Модель успешно загружена!")
     except Exception as e:
-        print(f"Ошибка загрузки модели: {e}")
+        print(f"❌ Ошибка загрузки модели: {e}")
         model = None
     yield
-
-
 
 app = FastAPI(
     title="Sentiment Classifier API",
@@ -36,7 +35,6 @@ app = FastAPI(
     version="1.0.0",
     lifespan=lifespan
 )
-
 
 class TextRequest(BaseModel):
     text: str
@@ -104,10 +102,13 @@ async def model_info():
         "f1_score": 0.875
     }
 
+@app.get("/bot-health")
+async def bot_health():
+    """Health check для бота"""
+    return {
+        "bot_status": "active",
+        "timestamp": time.time(),
+        "process_id": os.getpid()
+    }
 
-if __name__ == "__main__":
-    import uvicorn
-    print("🚀 Запуск Sentiment Classifier API...")
-    print("📡 Сервер доступен по адресу: http://localhost:8000")
-    print("📖 Документация API: http://localhost:8000/docs")
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+# Убрали блок if __name__ == "__main__" так как теперь запускаем через main.py

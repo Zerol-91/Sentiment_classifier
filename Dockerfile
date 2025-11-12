@@ -12,6 +12,5 @@ RUN mkdir -p models
 
 RUN python -c "import nltk; nltk.download('punkt'); nltk.download('stopwords')"
 
-EXPOSE 8000
-
-CMD ["python", "api.py"]
+# Для Render - проверяем модель и запускаем объединенный сервис
+CMD ["python", "main.py"]

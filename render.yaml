@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: sentiment-api-bot
+    env: docker
+    docker:
+      dockerfile: Dockerfile
+    envVars:
+      - key: TELEGRAM_BOT_TOKEN
+        value: TELEGRAM_BOT_TOKEN
+      - key: API_URL
+        value: http://localhost:10000
+      - key: MODEL_PATH
+        value: models/baseline_model.pkl
