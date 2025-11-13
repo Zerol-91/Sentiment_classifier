@@ -3,8 +3,9 @@ import logging
 import time
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
-import requests
 from dotenv import load_dotenv
+import joblib
+import numpy as np
 
 # Настраиваем логирование
 logging.basicConfig(
@@ -19,16 +20,51 @@ load_dotenv()
 class SentimentBot:
     def __init__(self):
         self.token = os.getenv('TELEGRAM_BOT_TOKEN')
-        # Для Docker на Render используем внутренний адрес
-        self.api_url = os.getenv('API_URL', 'http://localhost:10000')
         self.logger = logging.getLogger(__name__)
+        self.model = None
+        self.load_model()
+        
+    def load_model(self):
+        """Загрузка ML модели"""
+        try:
+            model_path = os.getenv("MODEL_PATH", "models/baseline_model.pkl")
+            self.logger.info(f"🤖 Загрузка модели из {model_path}...")
+            
+            if not os.path.exists(model_path):
+                raise FileNotFoundError(f"Модель не найдена: {model_path}")
+                
+            self.model = joblib.load(model_path)
+            self.logger.info("✅ Модель успешно загружена!")
+            
+        except Exception as e:
+            self.logger.error(f"❌ Ошибка загрузки модели: {e}")
+            self.model = None
+    
+    def analyze_sentiment(self, text):
+        """Анализ тональности текста с помощью модели"""
+        if self.model is None:
+            raise Exception("Модель не загружена")
+        
+        start_time = time.time()
+        
+        # Предсказание с помощью модели
+        prediction = self.model.predict([text])[0]
+        probabilities = self.model.predict_proba([text])[0]
+        
+        # Уверенность для позитивного класса
+        confidence = float(probabilities[1] if prediction == "positive" else probabilities[0])
+        processing_time = time.time() - start_time
+        
+        return prediction, confidence, processing_time
         
     async def start(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Обработчик команды /start"""
         welcome_text = """
-🤖 Sentiment Analyzer Bot (Render Edition)
+🤖 Sentiment Analyzer Bot (Standalone Edition)
 
 Отправь текст на английском для анализа тональности!
+
+Бот работает полностью самостоятельно с ML моделью 🧠
 
 Команды:
 /start - начать
@@ -43,7 +79,7 @@ class SentimentBot:
 📖 Помощь по боту:
 
 • Просто отправь мне текст на английском
-• Я проанализирую его тональность
+• Я проанализирую его тональность с помощью ML модели
 • Верну результат: позитивный/негативный и уверенность
 
 Команды:
@@ -55,16 +91,10 @@ class SentimentBot:
     
     async def status(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Обработчик команды /status"""
-        try:
-            response = requests.get(f"{self.api_url}/health", timeout=5)
-            if response.status_code == 200:
-                status_data = response.json()
-                status_msg = f"✅ API статус: {status_data.get('status', 'unknown')}\n"
-                status_msg += f"📊 Модель загружена: {status_data.get('model_loaded', False)}"
-            else:
-                status_msg = "❌ API недоступен"
-        except Exception as e:
-            status_msg = f"❌ Ошибка подключения к API: {str(e)}"
+        if self.model is not None:
+            status_msg = "✅ Бот работает, модель загружена"
+        else:
+            status_msg = "❌ Модель не загружена"
         
         await update.message.reply_text(status_msg)
     
@@ -79,53 +109,40 @@ class SentimentBot:
         await update.message.chat.send_action(action="typing")
         
         try:
-            # Отправляем запрос к нашему API
-            response = requests.post(
-                f"{self.api_url}/predict",
-                json={"text": user_text},
-                timeout=10
-            )
+            # Анализируем текст напрямую с помощью модели
+            sentiment, confidence, processing_time = self.analyze_sentiment(user_text)
             
-            if response.status_code == 200:
-                result = response.json()
-                sentiment = result['sentiment']
-                confidence = result['confidence']
-                processing_time = result['processing_time']
-                
-                # Форматируем ответ
-                if sentiment == 'positive':
-                    emoji = "😊"
-                    message = "ПОЗИТИВНЫЙ"
-                else:
-                    emoji = "😠" 
-                    message = "НЕГАТИВНЫЙ"
-                
-                reply_text = f"""
+            # Форматируем ответ
+            if sentiment == 'positive':
+                emoji = "😊"
+                message = "ПОЗИТИВНЫЙ"
+            else:
+                emoji = "😠" 
+                message = "НЕГАТИВНЫЙ"
+            
+            reply_text = f"""
 {emoji} Результат анализа: {message}
 
 📊 Уверенность: {confidence:.1%}
 ⏱ Время обработки: {processing_time:.3f} сек
 
 Текст: "{user_text[:100]}{'...' if len(user_text) > 100 else ''}"
-                """
+            """
                 
-            else:
-                reply_text = "❌ Ошибка при анализе текста. Попробуйте позже."
-                
-        except requests.exceptions.ConnectionError:
-            reply_text = "🔌 API недоступен. Подождите немного..."
-        except requests.exceptions.Timeout:
-            reply_text = "⏰ Таймаут подключения к API. Попробуйте позже."
         except Exception as e:
-            self.logger.error(f"Неожиданная ошибка: {e}")
-            reply_text = "⚠️ Произошла непредвиденная ошибка. Попробуйте еще раз."
+            self.logger.error(f"Ошибка анализа: {e}")
+            reply_text = "❌ Ошибка при анализе текста. Попробуйте позже."
         
         await update.message.reply_text(reply_text)
     
     def run(self):
-        """Запуск бота с обработкой ошибок"""
+        """Запуск бота"""
         if not self.token:
             self.logger.error("❌ Токен бота не найден! Проверьте файл .env")
+            return
+        
+        if self.model is None:
+            self.logger.error("❌ Модель не загружена! Бот не может работать.")
             return
         
         max_retries = 3
@@ -155,12 +172,12 @@ class SentimentBot:
                 if attempt < max_retries - 1:
                     self.logger.info(f"🔄 Повтор через {retry_delay} сек...")
                     time.sleep(retry_delay)
-                    retry_delay *= 2  # Экспоненциальная задержка
+                    retry_delay *= 2
                 else:
                     self.logger.error("❌ Все попытки запуска бота провалились")
 
 def main():
-    """Основная функция для запуска бота отдельно"""
+    """Основная функция"""
     bot = SentimentBot()
     bot.run()
 
