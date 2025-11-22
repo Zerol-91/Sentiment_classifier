@@ -12,8 +12,7 @@ load_dotenv()
 
 def main():
     """Запускаем бота с проверкой всех зависимостей"""
-    
-    
+        
     required_vars = ['TELEGRAM_BOT_TOKEN']
     missing_vars = [var for var in required_vars if not os.getenv(var)]
     

@@ -111,5 +111,3 @@ async def bot_health():
         "timestamp": time.time(),
         "process_id": os.getpid()
     }
-
-# Убрали блок if __name__ == "__main__" так как теперь запускаем через main.py
