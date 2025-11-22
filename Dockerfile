@@ -14,4 +14,4 @@ RUN mkdir -p models
 RUN python -c "import nltk; nltk.download('punkt'); nltk.download('stopwords')"
 
 # Запускаем бота
-CMD ["python", "bot.py"]
+CMD ["python", "run_bot.py"]
