@@ -72,7 +72,7 @@ sentiment-classifier/
 
 ```bash
 # Pull the pre-built image
-docker pull yourusername/sentiment-classifier:latest
+docker pull zerol91/sentiment-classifier:latest
 
 # Run the container
 docker run -d \
