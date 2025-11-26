@@ -82,7 +82,7 @@ If the bot doesn't respond, then you need to launch the container yourself via t
 Run the pre-built Docker image with your own Telegram bot:
 
 ```bash
-# Pull the Docker image
+# Pull the pre-built image
 docker pull zerol91/sentiment-classifier:latest
 
 # Create your bot with @BotFather and get token
