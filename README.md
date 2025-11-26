@@ -68,50 +68,87 @@ sentiment-classifier/
 
 ## ⚡ Quick Start
 
-### Option 1: Docker (Recommended)
+### Option 1: Live Demo Bot (Fastest)
+Try the pre-deployed bot - no installation required!
+
+1. Open [Telegram](https://telegram.org)
+2. Search for `@Sentiment91_bot` 
+3. Send `/start` command
+4. Type any English text for sentiment analysis
+
+If the bot doesn't respond, then you need to launch the container yourself via the zerol91/sentiment-classifier image. You can find it on the Docker Hub.
+
+### Option 2: Docker with Your Own Bot
+Run the pre-built Docker image with your own Telegram bot:
 
 ```bash
 # Pull the pre-built image
 docker pull zerol91/sentiment-classifier:latest
 
-# Run the container
+# Create your bot with @BotFather and get token
+# Run container with your token
 docker run -d \
   --name sentiment-bot \
   -e TELEGRAM_BOT_TOKEN="your_bot_token_here" \
-  yourusername/sentiment-classifier:latest
-```
+  zerol91/sentiment-classifier:latest
+  ```
+
+### Option 3: Local Installation
+For development and customization:
 
 ```bash
-# Clone the repository
-git clone https://github.com/yourusername/sentiment-classifier.git
+# Clone repository
+git clone https://github.com/zerol91/sentiment-classifier.git
 cd sentiment-classifier
 
 # Create virtual environment
 python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+source venv/bin/activate  # On Windows: .venv\Scripts\activate
 
 # Install dependencies
 pip install -r requirements.txt
 
-# Set up environment variables
+# Set up environment
 cp .env.example .env
 # Edit .env with your Telegram bot token
 
-# Run the application
+# Run the bot
 python run_bot.py
 ```
 
-## 🔧 Configuration
+### 🔧 Configuration
 Create a .env file with the following variables:
 ```
-env
+# .env
 TELEGRAM_BOT_TOKEN=your_telegram_bot_token_here
 MODEL_PATH=models/baseline_model.pkl
 API_HOST=localhost
 API_PORT=8000
 ```
 
-## 📡 API Documentation
+## Telegram Bot
+Commands
+```
+/start - Welcome message and instructions
+
+/help - Usage guide
+
+/analyze <text> - Analyze specific text ("/analyze" is optional)
+
+/stats - Model information and performance
+```
+
+
+## Example Usage Rest API (Optional)
+The sentiment analysis model can also be accessed via REST API:
+
+### Start API Server
+```bash
+python run_api.py
+```
+
+### API Documentation
+Once running, visit: http://localhost:8000/docs
 Endpoints
 ```
 GET / - API status
@@ -120,55 +157,50 @@ POST /predict - Analyze text sentiment
 GET /docs - Interactive API documentation
 ```
 
-Example Usage
-```bash
-# Analyze sentiment
-curl -X POST "http://localhost:8000/predict" \
-  -H "Content-Type: application/json" \
-  -d '{"text": "This movie is absolutely fantastic!"}'
-# Response:
+The FastAPI interactive docs make it easy to test the sentiment analysis:
 
-json
+Step-by-Step Guide:
+- On the docs page, find the POST /predict endpoint in the "default" section
+- Look for the green "POST" button with the /predict path
+
+- Click the "Try it out" button to enable interactive testing
+
+- Enter Your Text
+In the request body, replace the example with your own text:
+```json
+{
+  "text": "This movie is absolutely amazing and I love it!"
+}
+```
+- Click the "Execute" button to send the request
+
+Example Responce:
+```json
 {
   "sentiment": "positive",
-  "confidence": 0.92,
-  "processing_time": 0.045,
+  "confidence": 0.7164391312416224,
+  "processing_time": 0.004557132720947266,
   "model_version": "baseline_v1"
 }
 ```
-## Telegram Bot
-Commands
-```
-/start - Welcome message and instructions
-
-/help - Usage guide
-
-/analyze <text> - Analyze specific text
-
-/stats - Model information and performance
-```
-
-## Setup
-Create a bot with BotFather on Telegram
-Get your bot token
-Set TELEGRAM_BOT_TOKEN in your environment (.env file)
-Start chatting with your bot!
-
 
 ## Docker Development
 Build Image
 ```bash
 docker build -t sentiment-classifier .
-Run with Docker Compose
 ```
+
+Run with Docker Compose
 ```bash
 docker-compose up -d
-View Logs
 ```
+
+View Logs
 ```bash
 docker logs -f sentiment-bot
 ```
-🧪 Testing
+
+Testing
 ```bash
 # Run tests
 pytest tests/
