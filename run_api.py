@@ -2,8 +2,10 @@
 import uvicorn
 import os
 from dotenv import load_dotenv
+import sys
 
 load_dotenv()
+sys.path.append(os.path.join(os.path.dirname(__file__), 'src'))
 
 if __name__ == "__main__":
 
