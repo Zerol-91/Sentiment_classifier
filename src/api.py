@@ -23,11 +23,12 @@ async def lifespan(app: FastAPI):
             raise FileNotFoundError(f"Модель не найдена: {model_path}")
             
         model.load(model_path)
-        print("✅ Модель успешно загружена!")
+        print("Модель успешно загружена!")
     except Exception as e:
-        print(f"❌ Ошибка загрузки модели: {e}")
+        print(f"Ошибка загрузки модели: {e}")
         model = None
     yield
+    
 
 app = FastAPI(
     title="Sentiment Classifier API",
@@ -110,5 +111,3 @@ async def bot_health():
         "timestamp": time.time(),
         "process_id": os.getpid()
     }
-
-# Убрали блок if __name__ == "__main__" так как теперь запускаем через main.py

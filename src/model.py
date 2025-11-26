@@ -19,9 +19,9 @@ class BaselineModel:
         ])
     
     def train(self, texts, labels):
-        print("🎯 Обучаем baseline модель...")
+        print("Обучаем baseline модель.")
         self.pipeline.fit(texts, labels)
-        print("✅ Модель обучена!")
+        print("Модель обучена.")
     
     def predict(self, texts):
         return self.pipeline.predict(texts)
@@ -31,20 +31,20 @@ class BaselineModel:
     
     def evaluate(self, test_texts, test_labels):
         predictions = self.predict(test_texts)
-        
-        print("📊 Результаты оценки модели:")
+
+        print("Результаты оценки модели:")
         print(classification_report(test_labels, predictions))
         
         f1 = f1_score(test_labels, predictions, average='macro')
-        print(f"🎯 Macro F1 Score: {f1:.3f}")
+        print(f"Macro F1 Score: {f1:.3f}")
         
         return f1
     
     def save(self, path='models/baseline_model.pkl'):
         joblib.dump(self.pipeline, path)
-        print(f"💾 Модель сохранена в {path}")
+        print(f"Модель сохранена в {path}")
     
     def load(self, path='models/baseline_model.pkl'):
-        """Загрузка модели из файла"""
+        """Загрузка модели из пайплайна"""
         self.pipeline = joblib.load(path)
-        print(f"📥 Модель загружена из {path}")
+        print(f"Модель загружена из {path}")

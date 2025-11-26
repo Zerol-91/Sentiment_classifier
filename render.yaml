@@ -1,13 +1,12 @@
 services:
   - type: web
-    name: sentiment-api-bot
+    name: sentiment-bot
     env: docker
     docker:
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.bot
     envVars:
       - key: TELEGRAM_BOT_TOKEN
-        value: TELEGRAM_BOT_TOKEN
+        fromSecret: true
       - key: API_URL
-        value: http://localhost:10000
-      - key: MODEL_PATH
-        value: models/baseline_model.pkl
+        value: https://sentiment-classifier-lox2.onrender.com
+    healthCheckPath: /health
